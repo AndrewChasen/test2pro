@@ -5,7 +5,7 @@ use test2pro::configuration::{get_configuration, DatabaseSettings};
 use test2pro::telemetry::{get_subscriber, init_subscriber};
 use uuid::Uuid;
 use once_cell::sync::Lazy;
-use secrecy::ExposeSecret;
+// use secrecy::ExposeSecret;
 
 
 static TRACING: Lazy<()> = Lazy::new(|| {
@@ -58,14 +58,14 @@ async fn spwan_app()-> TestApp{
 
 async fn configure_database(config:&DatabaseSettings) ->PgPool{
 
-    let mut connection = PgConnection::connect(
-        &config.connection_string_without_db().expose_secret()
+    let mut connection = PgConnection::connect_with(
+        &config.without_db()
     ).await.expect("Couldn't connect to database named postgres");
 
     connection.execute(format!(r#"CREATE DATABASE "{}";"#, config.database_name).as_str())
         .await.expect("Couldn't create database named postgres");
 
-    let connection_pool = PgPool::connect(&config.connection_string().expose_secret())
+    let connection_pool = PgPool::connect_with(config.with_db())
         .await.expect("failed to connect to postgres database");
 
     sqlx::migrate!("./migrations").run(&connection_pool)
