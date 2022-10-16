@@ -32,8 +32,8 @@ services:
         scope: RUN_TIME
         value: ${newsletter.DATABASE}
 databases:
-  - engine: PG
-    name: newsletter
+  - name: newsletter
+  - engine: PG  
     num_nodes: 1
     size: db-s-dev-database
     version: "12"

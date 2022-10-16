@@ -2,8 +2,9 @@ use secrecy::Secret;
 use secrecy::ExposeSecret;
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::PgConnectOptions;
-// use sqlx::postgres::PgSslMode;
+use sqlx::postgres::PgSslMode;
 use sqlx::ConnectOptions;
+use std::convert::{TryFrom, TryInto};
 
 #[derive(serde::Deserialize)]
 pub struct Settings {
@@ -16,6 +17,7 @@ pub struct ApplicationSettings {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port:u16,
     pub host:String,
+    pub base_url:String,
 }
 
 #[derive(serde::Deserialize)]
@@ -30,6 +32,22 @@ pub struct DatabaseSettings {
 }
 
 impl DatabaseSettings {
+
+    pub fn without_db(&self) -> PgConnectOptions {
+        let ssl_mode = if self.require_ssl{
+            PgSslMode:: Require
+        } else {
+            PgSslMode:: Prefer
+        };
+
+        PgConnectOptions::new ()
+            .host(&self.host)
+            .username(&self.username)
+            .password(&self.password.expose_secret())
+            .port(self.port)
+            .ssl_mode(ssl_mode)
+
+    }
     // pub fn connection_string(&self)->Secret<String> {
     //     Secret::new(format!(
     //         "postgres://{}:{}@{}:{}/{}",
@@ -52,21 +70,7 @@ impl DatabaseSettings {
 
     // }
 
-    pub fn without_db(&self) ->PgConnectOptions {
-        // let ssl_mode = if self.require_ssl{
-        //     PgSslMode::Require
-        // } else {
-        //     PgSslMode::Prefer
-        // };
-
-        PgConnectOptions::new ()
-            .host(&self.host)
-            .username(&self.username)
-            .password(&self.password.expose_secret())
-            .port(self.port)
-            // .ssl_mode(ssl_mode)
-
-    }
+    
 }
 
     pub fn get_configuration() ->Result<Settings, config::ConfigError>{
@@ -130,7 +134,7 @@ impl TryFrom<String> for Environment {
             other => Err(format!(
                 "{} is not a supported enviroment. \
                 use either 'local' or 'production' instead.", other)
-            )
+            ),
         }
     }
 }

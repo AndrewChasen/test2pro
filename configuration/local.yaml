@@ -1,3 +1,5 @@
 application:
   host: 127.0.0.1
-  # require_ssl: false
+  require_ssl: false
+database:
+  require_ssl: false
