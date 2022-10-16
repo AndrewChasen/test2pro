@@ -2,7 +2,7 @@ use secrecy::Secret;
 use secrecy::ExposeSecret;
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::PgConnectOptions;
-use sqlx::postgres::PgSslMode;
+// use sqlx::postgres::PgSslMode;
 use sqlx::ConnectOptions;
 
 #[derive(serde::Deserialize)]
@@ -53,18 +53,18 @@ impl DatabaseSettings {
     // }
 
     pub fn without_db(&self) ->PgConnectOptions {
-        let ssl_mode = if self.require_ssl{
-            PgSslMode::Require
-        } else {
-            PgSslMode::Prefer
-        };
+        // let ssl_mode = if self.require_ssl{
+        //     PgSslMode::Require
+        // } else {
+        //     PgSslMode::Prefer
+        // };
 
         PgConnectOptions::new ()
             .host(&self.host)
             .username(&self.username)
             .password(&self.password.expose_secret())
             .port(self.port)
-            .ssl_mode(ssl_mode)
+            // .ssl_mode(ssl_mode)
 
     }
 }
@@ -88,6 +88,7 @@ impl DatabaseSettings {
 
         let settings = config::Config::builder()
             .add_source(
+                // add configuration values from a file named 'configuration.yaml'
                 // config::File::new("configuration.yaml", config::FileFormat::Yaml)
 
                 //add the base.yaml configuration
